@@ -1,6 +1,12 @@
 services:
-  app:
-    build: .
+  # app:
+  #   build: .
+  #   container_name: pagerduty-syncer
+  #   restart: always
+  #   env_file:
+  #     - .env
+  cloud:
+    image: ramz001/pagerduty-syncer:main
     container_name: pagerduty-syncer
     restart: always
     env_file:
