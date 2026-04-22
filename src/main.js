@@ -37,6 +37,11 @@ async function syncOpenTickets(limit = MAX_TICKETS_FROM_CMS) {
     const cmsData = await cmsRes.json();
     const tickets = cmsData.tickets || [];
 
+    // Sort tickets by createdAt (oldest first)
+    tickets.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
     console.log(
       `Found ${tickets.length} open tickets. Syncing to PagerDuty...`,
     );
