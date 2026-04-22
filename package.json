@@ -1,0 +1,19 @@
+{
+  "name": "pager-duty-syncer",
+  "version": "1.0.0",
+  "description": "Sync open tickets from CMS to PagerDuty ",
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "author": "Ramz001",
+  "license": "ISC",
+  "packageManager": "pnpm@10.32.1",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0"
+  }
+}
