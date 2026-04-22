@@ -4,7 +4,7 @@ export const PAGERDUTY_ROUTING_KEY = process.env.PAGERDUTY_ROUTING_KEY || "";
 export const PAGERDUTY_EVENT_URL = "https://events.eu.pagerduty.com/v2/enqueue";
 export const CMS_URL = "https://cms.supportarea.online";
 export const CMS_AUTH_COOKIE = process.env.CMS_AUTH_COOKIE || "";
-export const MAX_TICKETS_FROM_CMS = 10000;
+export const MAX_TICKETS_FROM_CMS = parseInt(process.env.MAX_TICKETS_FROM_CMS) || 100;
 
 if (
   !PAGERDUTY_ROUTING_KEY ||
