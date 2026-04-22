@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { createPagerDutyEvent } from "./utils/createPagerDutyEvent.js";
 import { CMS_AUTH_COOKIE, CMS_URL, MAX_TICKETS_FROM_CMS } from "./constants/global.constants.js";
 
@@ -45,5 +44,3 @@ async function syncOpenTickets() {
 }
 
 syncOpenTickets().catch(console.error);
-
-export {};
