@@ -6,6 +6,8 @@ import {
 } from "./constants/global.constants.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const formatTime = (date) =>
+  `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
 
 let quickSyncInterval;
 let fullSyncInterval;
@@ -15,9 +17,12 @@ let isSyncing = false;
 async function syncOpenTickets(limit = MAX_TICKETS_FROM_CMS) {
   if (isShuttingDown || isSyncing) return;
   isSyncing = true;
+  const startTime = new Date();
 
   try {
-    console.log(`Fetching up to ${limit} open tickets from CMS...`);
+    console.log(
+      `[${formatTime(startTime)}] Fetching up to ${limit} open tickets from CMS...`,
+    );
     const cmsRes = await fetch(
       `${CMS_URL}/api/tickets?limit=${limit}&status=open`,
       {
@@ -60,11 +65,15 @@ async function syncOpenTickets(limit = MAX_TICKETS_FROM_CMS) {
     }
 
     if (!isShuttingDown) {
-      console.log("Finished syncing tickets.");
+      const endTime = new Date();
+      console.log(
+        `[${formatTime(endTime)}] Finished syncing tickets. Duration: ${endTime.getTime() - startTime.getTime()}ms`,
+      );
     }
   } catch (err) {
+    const endTime = new Date();
     console.error(
-      "Error during sync:",
+      `[${formatTime(endTime)}] Error during sync`,
       err instanceof Error ? err.message : err,
     );
   } finally {
