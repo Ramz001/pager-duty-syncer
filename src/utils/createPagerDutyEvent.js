@@ -3,14 +3,40 @@ import {
   CMS_URL,
   PAGERDUTY_ROUTING_KEY,
   PAGERDUTY_EVENT_URL,
+  IMAGE_BASE_URL,
 } from "../constants/global.constants.js";
 
 export async function createPagerDutyEvent(ticket) {
+  const messages = [];
+  const pdImages = [];
+
+  for (const reply of (ticket.replies || [])) {
+    const time = new Date(reply.createdAt).toLocaleString();
+    const author = reply.createdBy?.name || "Unknown";
+    const attachmentUrls = (reply.attachments || []).map(path => `${IMAGE_BASE_URL}/${path}`);
+    
+    messages.push({
+      time,
+      author,
+      content: reply.content || "(No text content)",
+      ...(attachmentUrls.length > 0 && { attachments: attachmentUrls })
+    });
+
+    for (const url of attachmentUrls) {
+      pdImages.push({
+        src: url,
+        href: url,
+        alt: `Attachment from ${author}`
+      });
+    }
+  }
+
   const body = {
     routing_key: PAGERDUTY_ROUTING_KEY,
     event_action: "trigger",
     dedup_key: ticket.id,
     client_url: `${CMS_URL}/tickets/${ticket.id}`,
+    images: pdImages,
     payload: {
       summary: ticket.title,
       source: "cms.supportarea.online",
@@ -31,8 +57,9 @@ export async function createPagerDutyEvent(ticket) {
         provider: ticket.provider,
         createdBy: ticket.createdBy?.name,
         createdByEmail: ticket.createdBy?.email,
-        replyCount: ticket._count?.replies ?? 0,
+        replyCount: ticket._count?.replies ?? ticket.replies?.length ?? 0,
         url: `${CMS_URL}/tickets/${ticket.id}`,
+        messages: messages,
       },
     },
   };

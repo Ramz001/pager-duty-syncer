@@ -3,6 +3,8 @@ import {
   CMS_AUTH_COOKIE,
   CMS_URL,
   MAX_TICKETS_FROM_CMS,
+  QUICK_SYNC_TTL,
+  FULL_SYNC_TTL,
 } from "./constants/global.constants.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -39,7 +41,8 @@ async function syncOpenTickets(limit = MAX_TICKETS_FROM_CMS) {
 
     // Sort tickets by createdAt (oldest first)
     tickets.sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
 
     console.log(
@@ -56,6 +59,21 @@ async function syncOpenTickets(limit = MAX_TICKETS_FROM_CMS) {
       );
 
       try {
+        // Fetch replies for the current ticket
+        const repliesRes = await fetch(
+          `${CMS_URL}/api/tickets/${ticket.id}/replies`,
+          {
+            headers: { Cookie: CMS_AUTH_COOKIE },
+          },
+        );
+
+        if (repliesRes.ok) {
+          ticket.replies = await repliesRes.json();
+        } else {
+          console.warn(`Could not fetch replies for ticket ${ticket.id}`);
+          ticket.replies = [];
+        }
+
         await createPagerDutyEvent(ticket);
       } catch (err) {
         if (err instanceof Error) {
@@ -90,20 +108,17 @@ async function startSyncers() {
   // Run full sync immediately on startup
   await syncOpenTickets(MAX_TICKETS_FROM_CMS);
 
-  const ONE_MINUTE = 60 * 1000;
-  const TWO_HOURS = 2 * 60 * 60 * 1000;
-
   // Fast sync: 20 latest tickets every 1 minute
   quickSyncInterval = setInterval(() => {
     console.log("Starting quick sync...");
     syncOpenTickets(20);
-  }, ONE_MINUTE);
+  }, QUICK_SYNC_TTL);
 
   // Full sync: all tickets every 2 hours
   fullSyncInterval = setInterval(() => {
     console.log("Starting full sync...");
     syncOpenTickets(MAX_TICKETS_FROM_CMS);
-  }, TWO_HOURS);
+  }, FULL_SYNC_TTL);
 }
 
 async function gracefulShutdown(signal) {
